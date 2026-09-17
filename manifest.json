@@ -1,0 +1,8 @@
+{
+  "name": "BE-IT Coaches",
+  "short_name": "BE-IT",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F3F3EF",
+  "theme_color": "#0B0B0A"
+}

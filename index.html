@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>BE-IT Coaches</title>
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="BE-IT Coaches">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0B0B0A">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+:root{
+  --bg:#F3F3EF; --surface:#FFFFFF; --soft:#E9E9E3; --ink:#0B0B0A; --muted:#6B6B62;
+  --line:#D6D6CE; --accent:#F2E205; --on-accent:#0B0B0A; --accent-text:#6B5E00; --accent-soft:#FBF6C9;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A0A09; --surface:#1A1A16; --soft:#221F18; --ink:#F3F3EF; --muted:#A3A398;
+    --line:#333026; --accent:#F2E205; --on-accent:#0B0B0A; --accent-text:#F2E205; --accent-soft:#332F10;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A0A09; --surface:#1A1A16; --soft:#221F18; --ink:#F3F3EF; --muted:#A3A398;
+  --line:#333026; --accent:#F2E205; --on-accent:#0B0B0A; --accent-text:#F2E205; --accent-soft:#332F10;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:18px;line-height:1.45;-webkit-font-smoothing:antialiased;padding-top:env(safe-area-inset-top,0px)}
+button{font:inherit;color:inherit}
+button,input,select,textarea{-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:760px;margin:0 auto;padding:20px 20px 130px}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0 18px;border-bottom:3px solid var(--ink);margin-bottom:24px}
+.brand{font-family:"Anton","Arial Narrow",sans-serif;font-weight:400;font-size:30px;letter-spacing:.5px;line-height:.9;text-transform:uppercase;display:flex;flex-wrap:wrap;gap:.35em}
+.brand span{font-weight:inherit}
+.tabs{display:flex;gap:6px}
+.tab{border:1.5px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:999px;font-size:16px;cursor:pointer}
+.tab[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+h1{font-family:"Anton","Arial Narrow",sans-serif;font-weight:400;font-size:46px;line-height:.95;margin:0 0 8px;text-wrap:balance;text-transform:uppercase}
+h2{font-family:"Anton","Arial Narrow",sans-serif;font-weight:400;font-size:26px;line-height:1.05;margin:0 0 4px;text-transform:uppercase}
+.lede{color:var(--muted);margin:0 0 22px;max-width:60ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.pick{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:16px;text-align:left;cursor:pointer;min-height:84px;font-size:20px;font-weight:600;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.pick:hover{border-color:var(--ink)}
+.pick[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.pick small{display:block;font-weight:500;font-size:14px;color:var(--muted);margin-top:2px}
+.pick.draft{border-style:dashed}
+.role{padding:18px}
+.role b{font-family:"Anton","Arial Narrow",sans-serif;font-weight:400;font-size:30px;display:block;line-height:1}
+.field{margin:0 0 26px}
+.label{font-weight:600;margin:0 0 10px;display:block}
+select,input[type=text],input[type=password],textarea{width:100%;font-size:19px;padding:14px;border-radius:12px;border:2px solid var(--line);background:var(--surface);color:var(--ink)}
+textarea{min-height:120px;resize:vertical}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{border:0;background:var(--ink);color:var(--bg);font-weight:600;font-size:20px;padding:16px 26px;border-radius:14px;cursor:pointer;min-height:58px}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:12px 20px calc(12px + env(safe-area-inset-bottom, 0px))}
+.bar .in{max-width:760px;margin:0 auto;display:flex;gap:10px;justify-content:space-between;align-items:center}
+.counter{display:flex;align-items:baseline;gap:14px;margin:0 0 20px;padding:14px 18px;background:var(--ink);color:var(--bg);border-radius:16px;flex-wrap:wrap}
+.led{font-family:"Anton","Arial Narrow",sans-serif;font-weight:400;font-size:64px;line-height:.9;color:var(--accent);font-variant-numeric:tabular-nums;letter-spacing:1px}
+.counter .meta{font-size:15px;line-height:1.4}
+.counter .meta b{display:block;font-size:20px}
+.anchor{border:1.5px solid var(--ink);border-radius:14px;padding:20px 22px;margin:0 0 26px}
+.anchor p{font-family:"Anton","Arial Narrow",sans-serif;font-weight:400;font-size:23px;line-height:1.22;text-transform:uppercase;letter-spacing:.01em;margin:8px 0 0}
+.stepline{margin:0 0 18px}
+.step-tag{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.sec{margin:0 0 26px}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;border-bottom:2px solid var(--ink);padding-bottom:6px;margin-bottom:6px}
+.sec-note{color:var(--muted);font-size:15px;margin:6px 0 8px}
+.sec-count{font-family:"Anton","Arial Narrow",sans-serif;font-size:22px;color:var(--muted);font-variant-numeric:tabular-nums}
+.sec-count.done{color:var(--ink)}
+.item{display:flex;gap:14px;align-items:flex-start;width:100%;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:14px 16px;margin:8px 0;cursor:pointer;min-height:60px}
+.item .box{flex:0 0 32px;height:32px;border:2.5px solid var(--ink);border-radius:8px;display:grid;place-items:center;margin-top:-2px}
+.item .box svg{width:22px;height:22px;opacity:0}
+.item[aria-checked="true"]{background:var(--soft);border-color:var(--ink)}
+.item[aria-checked="true"] .box{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.item[aria-checked="true"] .box svg{opacity:1}
+.item .who{font-size:14px;color:var(--muted);display:block}
+.miss{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:14px 16px;margin:10px 0}
+.miss p{margin:0 0 10px;font-weight:600}
+.chip{border:1.5px solid var(--line);background:var(--soft);border-radius:999px;padding:10px 16px;cursor:pointer;font-size:17px;min-height:46px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.rating{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.rate{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:14px 4px;cursor:pointer;text-align:center}
+.rate b{font-family:"Anton","Arial Narrow",sans-serif;font-weight:400;font-size:48px;line-height:1;display:block}
+.rate[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.scale{display:flex;justify-content:space-between;color:var(--muted);font-size:15px;margin-top:8px}
+.notice{background:var(--soft);border-left:4px solid var(--ink);padding:12px 14px;border-radius:8px;margin:0 0 20px;font-size:16px}
+.done-screen{text-align:center;padding:60px 0}
+.done-screen .stars{font-size:22px;letter-spacing:4px;color:var(--muted)}
+.done-screen .identity{font-family:"Anton","Arial Narrow",sans-serif;font-weight:400;text-transform:uppercase;letter-spacing:.06em;font-size:15px;color:var(--muted);max-width:38ch;margin:20px auto 32px}
+.link{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;padding:8px 0;font-size:16px}
+.addrow{display:flex;gap:10px;margin-top:14px}
+.addrow input{flex:1}
+.badge{display:inline-block;background:var(--bg);color:var(--ink);border-radius:999px;padding:3px 10px;font-size:13px;font-weight:600;margin-left:6px;vertical-align:middle}
+.weeknav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 20px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 30px}
+.stat{background:var(--ink);color:var(--bg);border-radius:14px;padding:14px 16px}
+.stat .led{font-size:52px}
+.stat span{display:block;font-size:15px}
+.panel{margin:0 0 34px}
+.panel h2{border-bottom:2px solid var(--ink);padding-bottom:6px;margin-bottom:12px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:16px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:14px}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.meter{height:8px;background:var(--line);border-radius:99px;overflow:hidden;min-width:80px;margin-top:6px}
+.meter i{display:block;height:100%;background:var(--muted)}
+.meter.good i{background:var(--ink)}
+.feed{list-style:none;margin:0;padding:0}
+.feed li{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 8px}
+.feed .by{font-size:14px;color:var(--muted);margin-bottom:4px}
+.flag{color:var(--ink);font-weight:700;font-size:14px}
+.empty{color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:18px}
+.remove{background:none;border:1px solid var(--line);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:14px;color:var(--muted)}
+.gate-screen{padding:40px 0;max-width:420px;margin:0 auto;text-align:center}
+@media (max-width:560px){
+  h1{font-size:36px}
+  .stats{grid-template-columns:1fr}
+  .rate b{font-size:38px}
+  .led{font-size:52px}
+}
+@media (prefers-reduced-motion:no-preference){
+  .item,.pick,.rate,.chip{transition:background-color .12s,border-color .12s}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">BE-IT <span>Coaches</span></div>
+    <nav class="tabs" id="tabs" hidden>
+      <button class="tab" data-act="tab" data-v="coach" aria-pressed="true">Coach</button>
+      <button class="tab" data-act="tab" data-v="dash" aria-pressed="false">Dashboard</button>
+    </nav>
+  </header>
+  <main id="app" aria-live="polite"></main>
+</div>
+<div class="bar" id="bar" hidden><div class="in" id="barIn"></div></div>
+
+<script>
+/* ---------- Backend ---------- */
+const SUPABASE_URL = 'https://xgokmkalelgcxezlsbhf.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_UozkPV-6h9y3i8SRZgBYng_GFxuP5Ic';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ---------- Shared team passcode (change this any time — one line) ---------- */
+const TEAM_CODE = 'BEIT2026';
+const GATE_KEY = 'beit-coaches-gate-ok';
+function gateOk(){try{return localStorage.getItem(GATE_KEY)==='1'}catch(e){return false}}
+function setGateOk(){try{localStorage.setItem(GATE_KEY,'1')}catch(e){}}
+
+/* ---------- The standard ---------- */
+const SECTIONS = [
+  {id:'arrival',  name:'Arrival', note:'20 min before your first class'},
+  {id:'huddle',   name:'Huddle', note:'15 min before your first class. Coach A leads, Coach B joins', soloName:'Before class', soloNote:'Solo shift: no huddle'},
+  {id:'arriving', name:'Members arriving'},
+  {id:'demo',     name:'Demo', note:'Starts at exactly class time. No waiting for late arrivals'},
+  {id:'starting', name:'Session starting'},
+  {id:'during',   name:'During'},
+  {id:'ends',     name:'Class ends'},
+  {id:'amclose',  name:'After your last AM class', note:'Class ends done first'},
+  {id:'pmclose',  name:'After your last class of the day', note:'Class ends done first'}
+];
+const STEPS = [
+  {title:'Arrival & Set Up',        secs:['arrival','huddle']},
+  {title:'Members, Demo & Start',   secs:['arriving','demo','starting']},
+  {title:'During',                  secs:['during']},
+  {title:'Class Ends',              secs:['ends','amclose','pmclose']}
+];
+// [id, section, roles (A,B,C,S=solo), text, solo text]
+const LINES = [
+  ['a2','arrival','AS','Front door open'],
+  ['a3','arrival','AS','Phone connected, workout on TV'],
+  ['a4','arrival','AS','Music on at 45%'],
+  ['a5','arrival','AS','Rogue timer on, full sound'],
+  ['a6','arrival','AS','Bookings checked, new members flagged'],
+  ['b1','arrival','BS','Workout walked through, floor numbers match the program on the TV'],
+  ['b2','arrival','BS','Get Ready zone lights on'],
+  ['b3','arrival','BS','Diffuser on at front desk'],
+  ['b4','arrival','BS','Sauna bookings checked, sauna on at least 1 hr 15 min before each booking'],
+  ['c1','arrival','C','Track setup checked against today\'s Perform program'],
+  ['c2','arrival','C','Workout on Track TV'],
+  ['c3','arrival','C','Perform bookings checked, new members flagged'],
+  ['c4','arrival','C','Own Perform run-through done'],
+  ['g1','arrival','ABCS','Staff gear in the cubes or upstairs, nothing at the front desk'],
+  ['h1','huddle','AB','Full demo run through together'],
+  ['h2','huddle','AB','Workout split in half, each coach named their 3 stations'],
+  ['h3','huddle','B','Named my 1–2 hotspots'],
+  ['s1','huddle','S','Walked through the demo on my own'],
+  ['m1','arriving','ABCS','Every single person greeted by name'],
+  ['m2','arriving','A','Every new member walked to Coach B'],
+  ['m3','arriving','BS','Every new member introduced to 2 members'],
+  ['d1','demo','AS','1 minute call: gym mats for strength, grass for cardio'],
+  ['d2','demo','A','The only voice in the strength demo'],
+  ['d3','demo','BS','Demonstrated every exercise at Coach A\'s pace, never spoke over Coach A','Talked through and demonstrated every exercise'],
+  ['d4','demo','C','Perform demo on the Track, over Coach A\'s music'],
+  ['t1','starting','AS','Timer on, music at 70–75%, fans on'],
+  ['t2','starting','BS','Everyone paired off, late arrivals paired as they land'],
+  ['t3','starting','C','Perform members paired off'],
+  ['u1','during','AS','Every member pushed through at least 1 set'],
+  ['u2','during','AS','Owned the final minute and the finisher'],
+  ['u3','during','B','Held 1–2 hotspots, every member pushed through at least 1 set there'],
+  ['u4','during','ABC','Every member got a touch point from every coach by the end'],
+  ['e1','ends','ABCS','High fived every member'],
+  ['e2','ends','AS','Music down to 45%, fans off'],
+  ['e3','ends','AS','Mums sent up to crèche, member questions answered'],
+  ['e4','ends','ABS','Gym set to standard together','Gym set to standard'],
+  ['p1','amclose','AS','Bathrooms vacuumed, gym mats spot vacuumed'],
+  ['p2','amclose','AS','Turf vacuumed (Coach C does this on Perform shifts)','Turf vacuumed'],
+  ['p3','amclose','AS','iPad and iPhone on charge at front desk'],
+  ['p4','amclose','BS','All used equipment wiped with spray and cloth'],
+  ['p5','amclose','BS','Barbells and equipment reset for PM classes'],
+  ['p6','amclose','C','Track packed down, Track equipment wiped, turf vacuumed'],
+  ['q1','pmclose','AS','Today\'s equipment packed away, gym set for tomorrow\'s program'],
+  ['q2','pmclose','AS','Floor standard checked and met'],
+  ['q3','pmclose','BS','All used equipment wiped'],
+  ['q4','pmclose','BS','Bathrooms checked, bins emptied'],
+  ['q5','pmclose','BS','Sauna off'],
+  ['q6','pmclose','AS','A/C, TV and lights off, last out, alarm on']
+].map(([id,sec,roles,text,solo])=>({id,sec,roles,text,solo}));
+const LINE = Object.fromEntries(LINES.map(l=>[l.id,l]));
+const ROLES = {A:'Coach A',B:'Coach B',C:'Coach C',S:'Solo'};
+const ROLE_SUB = {A:'The experience',B:'Setup and hotspots',C:'Perform on the Track',S:'Every line, on your own'};
+const REASONS = {time:'Ran out of time',forgot:'Forgot',na:'Not needed today',unsure:'Not sure how'};
+
+const ANCHOR_LINES = [
+  'I am the standard in this room. Everyone leaves better than when they walked in.',
+  'I don\'t just run a session, I create an experience.',
+  'Every person leaves better than when they walked in.',
+  'I lead and elevate this room to become their best.',
+  'I am here to make someone feel seen today.',
+  'I help people see what they are capable of.'
+];
+function pickAnchor(){return ANCHOR_LINES[Math.floor(Math.random()*ANCHOR_LINES.length)]}
+
+const IDENTITY_LINES = [
+  'This is the standard we hold each other to.',
+  'This is who we are.',
+  'Not a checklist. A standard.',
+  'One standard. Every coach. Every time.',
+  'The standard doesn\'t change by who\'s on shift.',
+  'This is BE-IT. Every session.',
+  'Five star isn\'t the ceiling. It\'s the floor.',
+  'Showing up as the person we want to be.',
+  'This is the room that changes lives.',
+  'The standard you walk past is the standard you set.',
+  'We lead first, so others can do the same.',
+  'Every session is an opportunity to imprint something deeper.',
+  'We do it for the one.',
+  'We grow or we stay still.',
+  'This is the room to BE IN.'
+];
+let doneLine='';
+
+/* ---------- Timetable (locked 17 Sep 2026) ---------- */
+// day-of-week: 0 Sun ... 6 Sat. Sunday closed. Hyrox Self Lead excluded (not coached).
+const TIMETABLE = {
+  0: {track:null,        am:[],                                             pm:[],              perform:[]},
+  1: {track:'strength',  am:['04:50','05:50','06:50','08:00','09:00','10:00'], pm:['16:30','17:30'], perform:['04:50','05:50','09:00']},
+  2: {track:'strength',  am:['04:50','05:50','06:50','08:00','09:00','10:00'], pm:['16:30','17:30'], perform:['04:50','05:50','09:00']},
+  3: {track:'fullthrottle', am:['04:50','05:50','08:00','09:00','10:00'],    pm:['16:30','17:30'], perform:[]},
+  4: {track:'strength',  am:['04:50','05:50','06:50','08:00','09:00','10:00'], pm:['16:30','17:30'], perform:['04:50','05:50','09:00']},
+  5: {track:'strength',  am:['04:50','05:50','06:50','08:00','09:00','10:00'], pm:['16:00'],         perform:['04:50','05:50','09:00']},
+  6: {track:'fullthrottle', am:['06:15','08:00'],                            pm:[],              perform:[]}
+};
+const TRACK_LABEL = {strength:'Strength',fullthrottle:'Full Throttle'};
+
+/* ---------- Helpers ---------- */
+const $ = s=>document.querySelector(s);
+const esc = s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n=>String(n).padStart(2,'0');
+const ymd = d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const toMin = t=>{const [h,m]=t.split(':').map(Number);return h*60+m};
+const fmtTime = t=>{const [h,m]=t.split(':').map(Number);const hh=((h+11)%12)+1;return hh+(m?':'+pad(m):'')+(h<12?'am':'pm')};
+const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+function dayInfo(dateStr){return TIMETABLE[new Date(dateStr+'T00:00:00').getDay()]}
+function rolesFor(dateStr){
+  const d=dayInfo(dateStr);
+  const r=['A','B'];
+  if(d.perform.length)r.push('C');
+  r.push('S');
+  return r;
+}
+function candTimes(role,dateStr){
+  const d=dayInfo(dateStr);
+  if(role==='C')return {am:d.perform,pm:[],label:'Perform'};
+  return {am:d.am,pm:d.pm,label:TRACK_LABEL[d.track]||''};
+}
+function computeCloses(role,dateStr,classes){
+  const d=dayInfo(dateStr);
+  if(!classes.length)return {am:false,pm:false};
+  if(role==='C'){
+    const max=d.perform.length?Math.max(...d.perform.map(toMin)):null;
+    const selMax=Math.max(...classes.map(toMin));
+    return {am: max!=null && selMax===max, pm:false};
+  }
+  const allDay=d.am.concat(d.pm);
+  const amMax=d.am.length?Math.max(...d.am.map(toMin)):null;
+  const dayMax=allDay.length?Math.max(...allDay.map(toMin)):null;
+  const amSel=classes.filter(t=>d.am.includes(t));
+  const amSelMax=amSel.length?Math.max(...amSel.map(toMin)):null;
+  const selMax=Math.max(...classes.map(toMin));
+  return {
+    am: amMax!=null && amSelMax===amMax,
+    pm: dayMax!=null && selMax===dayMax
+  };
+}
+function linesFor(role,close){
+  return LINES.filter(l=>{
+    if(!l.roles.includes(role))return false;
+    if(l.sec==='amclose')return !!(close&&close.am);
+    if(l.sec==='pmclose')return !!(close&&close.pm);
+    return true;
+  });
+}
+function lineText(l,role){return role==='S'&&l.solo?l.solo:l.text}
+function summarizeClasses(classes){
+  const t=[...(classes||[])].sort((a,b)=>toMin(a)-toMin(b));
+  if(!t.length)return '';
+  if(t.length===1)return fmtTime(t[0]);
+  return fmtTime(t[0])+'–'+fmtTime(t[t.length-1])+' · '+t.length+' classes';
+}
+
+/* ---------- Local drafts (shared iPad) ---------- */
+const DKEY='beit-five-star-drafts';
+function loadDrafts(){try{const d=JSON.parse(localStorage.getItem(DKEY)||'{}');const t=ymd(new Date());for(const k in d)if(d[k].date!==t)delete d[k];return d}catch(e){return {}}}
+function saveDraft(){try{const d=loadDrafts();d[S.coach]=S;localStorage.setItem(DKEY,JSON.stringify(d))}catch(e){}}
+function clearDraft(name){try{const d=loadDrafts();delete d[name];localStorage.setItem(DKEY,JSON.stringify(d))}catch(e){}}
+
+/* ---------- State ---------- */
+let coaches=[], view='coach', coachesLoaded=false;
+let S = fresh();
+function fresh(){return {screen:gateOk()?'name':'gate',coach:null,date:ymd(new Date()),role:null,classes:[],close:{am:false,pm:false},step:0,ticks:{},missed:{},rating:null,next:'',started:null,anchor:pickAnchor(),gateError:''}}
+let adding=false, saving=false, saveError='';
+let dash={weekStart:mondayOf(new Date()),data:null,loading:false,error:''};
+function mondayOf(d){const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());const day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);return x}
+
+/* ---------- Render ---------- */
+function render(){
+  const app=$('#app');const bar=$('#bar');const barIn=$('#barIn');
+  bar.hidden=true;barIn.innerHTML='';
+  $('#tabs').hidden=(S.screen==='gate');
+  document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-pressed',String(t.dataset.v===view)));
+  if(S.screen!=='gate'&&view==='dash'){app.innerHTML=renderDash();return}
+  const fn={gate:rGate,name:rName,shift:rShift,list:rList,missed:rMissed,close:rClose,done:rDone}[S.screen];
+  app.innerHTML=fn();
+  if(S.screen==='name')setTimeout(()=>$('#newName')?.focus?.(),0);
+  const b=barFor();if(b){bar.hidden=false;barIn.innerHTML=b}
+}
+
+function rGate(){
+  return `<div class="gate-screen"><h1>Team Access</h1><p class="lede">Enter the BE-IT team code to open the coach checklist.</p>
+  <div class="field"><input type="password" id="gateCode" placeholder="Team code" autocomplete="off" aria-label="Team code"></div>
+  ${S.gateError?`<div class="notice">${esc(S.gateError)}</div>`:''}
+  <button class="btn" data-act="gateSubmit">Enter</button></div>`;
+}
+
+function rName(){
+  const names=[...new Set(coaches)].sort((a,b)=>a.localeCompare(b));
+  const drafts=loadDrafts();
+  let h=`<div class="anchor"><span class="step-tag">Anchor statement</span><p>${esc(S.anchor)}</p></div>`+'<h1>Who\'s coaching?</h1><p class="lede">Tap your name. If you started a session earlier today, it picks up where you left off.</p>';
+  if(!coachesLoaded)h+='<div class="empty">Loading coaches…</div>';
+  else if(!names.length)h+='<div class="empty">No coaches added yet. Add your name below to start.</div>';
+  else h+='<div class="grid">'+names.map(n=>{
+    const d=drafts[n];
+    return `<button class="pick${d?' draft':''}" data-act="coach" data-v="${esc(n)}">${esc(n)}${d?`<small>In progress: ${esc(ROLES[d.role]||'')} ${d.classes&&d.classes.length?esc(summarizeClasses(d.classes)):''}</small>`:''}</button>`;
+  }).join('')+'</div>';
+  h+= adding
+    ? `<div class="addrow"><input type="text" id="newName" placeholder="First name" autocomplete="off" aria-label="Your first name"><button class="btn" data-act="addName">Add</button></div>`
+    : `<button class="link" data-act="showAdd">Name not here? Add it</button>`;
+  return h;
+}
+
+function rShift(){
+  const day=dayInfo(S.date);
+  const closed=day.am.length+day.pm.length+day.perform.length===0;
+  let h=`<h1>${esc(S.coach)}, your shift</h1><p class="lede">${new Date(S.date+'T00:00:00').toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long'})}</p>`;
+  if(closed)return h+'<div class="empty">BE-IT is closed today. Nothing to sign off.</div>';
+  const roles=rolesFor(S.date);
+  h+=`<div class="field"><span class="label">Your role</span><div class="grid">${roles.map(r=>`<button class="pick role" data-act="role" data-v="${r}" aria-pressed="${S.role===r}"><b>${ROLES[r]}</b><small>${ROLE_SUB[r]}</small></button>`).join('')}</div></div>`;
+  if(S.role){
+    const ct=candTimes(S.role,S.date);
+    h+=`<div class="field"><span class="label">Which classes are you signing off?</span><p class="sec-note">Tap every class you're covering this shift. One tick, whenever you finish your last one — no need to log in again between classes.</p>`;
+    if(ct.am.length)h+=classGroup((ct.pm.length?'Morning · ':'')+ct.label,ct.am);
+    if(ct.pm.length)h+=classGroup('Afternoon · '+ct.label,ct.pm);
+    h+='</div>';
+  }
+  return h;
+}
+function classGroup(label,times){
+  return `<p class="sec-note" style="margin-top:14px"><b>${esc(label)}</b></p><div class="row">${times.map(t=>`<button class="chip" data-act="classToggle" data-v="${t}" aria-pressed="${S.classes.includes(t)}">${fmtTime(t)}</button>`).join('')}</div>`;
+}
+
+function rList(){
+  const lines=linesFor(S.role,S.close);
+  const done=lines.filter(l=>S.ticks[l.id]).length;
+  let closeTxt='';
+  if(S.close.am)closeTxt+=' <span class="badge">AM close</span>';
+  if(S.close.pm)closeTxt+=' <span class="badge">Day close</span>';
+  let h=`<div class="counter"><div class="led">${pad(done)}/${pad(lines.length)}</div><div class="meta"><b>${esc(S.coach)}, ${ROLES[S.role]}</b>${esc(summarizeClasses(S.classes))}${closeTxt}</div></div>`;
+  const step=STEPS[S.step];
+  const stepSecs=SECTIONS.filter(sec=>step.secs.includes(sec.id)).filter(sec=>lines.some(l=>l.sec===sec.id));
+  h+=`<div class="stepline"><span class="step-tag">Step ${S.step+1} of ${STEPS.length}</span><h2 style="margin:2px 0 0">${esc(step.title)}</h2></div>`;
+  if(S.step>0)h+='<button class="link" data-act="pause">Save for later</button>';
+  if(!stepSecs.length)h+='<div class="empty">Nothing for you to tick in this stage — tap Next.</div>';
+  for(const sec of stepSecs){
+    const ls=lines.filter(l=>l.sec===sec.id);
+    const c=ls.filter(l=>S.ticks[l.id]).length;
+    const name=S.role==='S'&&sec.soloName?sec.soloName:sec.name;
+    const note=S.role==='S'&&sec.soloNote?sec.soloNote:sec.note;
+    h+=`<section class="sec"><div class="sec-head"><h2>${name}</h2><span class="sec-count${c===ls.length?' done':''}">${c}/${ls.length}</span></div>${note?`<p class="sec-note">${note}</p>`:''}`;
+    h+=ls.map(l=>{
+      const shared=l.roles.length>2&&S.role!=='S'?'<span class="who">All coaches</span>':'';
+      return `<button class="item" role="checkbox" aria-checked="${!!S.ticks[l.id]}" data-act="tick" data-v="${l.id}"><span class="box">${CHECK}</span><span>${shared}${esc(lineText(l,S.role))}</span></button>`;
+    }).join('');
+    h+='</section>';
+  }
+  return h;
+}
+
+function rMissed(){
+  const lines=linesFor(S.role,S.close).filter(l=>!S.ticks[l.id]);
+  return `<h1>Anything not ticked?</h1><p class="lede">One tap each. This shows whether it's a training need or a system that needs fixing.</p>`+
+  lines.map(l=>`<div class="miss"><p>${esc(lineText(l,S.role))}</p><div class="row">${Object.entries(REASONS).map(([k,v])=>`<button class="chip" data-act="reason" data-line="${l.id}" data-v="${k}" aria-pressed="${S.missed[l.id]===k}">${v}</button>`).join('')}</div></div>`).join('');
+}
+
+function rClose(){
+  return `<h1>Close out your session</h1>
+  <div class="field"><span class="label">Did every member in the session leave better than they walked in?</span>
+    <div class="rating">${[1,2,3,4,5].map(n=>`<button class="rate" data-act="rate" data-v="${n}" aria-pressed="${S.rating===n}" aria-label="${n} out of 5"><b>${n}</b></button>`).join('')}</div>
+    <div class="scale"><span>1 Unsure</span><span>5 100% certain</span></div></div>
+  <div class="field"><label class="label" for="next">What would make your next session a 5?</label>
+    <textarea id="next" data-act="next" placeholder="One thing, in your words">${esc(S.next)}</textarea></div>
+  ${saveError?`<div class="notice">${esc(saveError)}</div>`:''}`;
+}
+
+function rDone(){
+  return `<div class="done-screen"><div class="stars">★★★★★</div><h1>Session saved</h1><p class="lede" style="margin:8px auto 4px">Thanks ${esc(S.coach)}. Hand the device to the next coach.</p><p class="identity">${esc(doneLine)}</p><button class="btn" data-act="restart">Next coach</button></div>`;
+}
+
+function barFor(){
+  const s=S.screen;
+  if(s==='shift'){
+    const day=dayInfo(S.date);
+    if(day.am.length+day.pm.length+day.perform.length===0)return `<button class="btn ghost" data-act="back">Back</button>`;
+    const ok=S.role&&S.classes.length>0;
+    return `<button class="btn ghost" data-act="back">Back</button><button class="btn" data-act="toList" ${ok?'':'disabled'}>Start my list</button>`;
+  }
+  if(s==='list'){
+    const last=S.step===STEPS.length-1;
+    const left=S.step>0?`<button class="btn ghost" data-act="stepBack">Back</button>`:`<button class="btn ghost" data-act="pause">Save for later</button>`;
+    const right=last?`<button class="btn" data-act="finishList">Finish session</button>`:`<button class="btn" data-act="stepNext">Next</button>`;
+    return left+right;
+  }
+  if(s==='missed'){
+    const lines=linesFor(S.role,S.close).filter(l=>!S.ticks[l.id]);
+    const ok=lines.every(l=>S.missed[l.id]);
+    return `<button class="btn ghost" data-act="toListBack">Back to list</button><button class="btn" data-act="toClose" ${ok?'':'disabled'}>Next</button>`;
+  }
+  if(s==='close'){
+    const ok=S.rating&&S.next.trim().length>0&&!saving;
+    return `<button class="btn ghost" data-act="closeBack">Back</button><button class="btn" data-act="submit" ${ok?'':'disabled'}>${saving?'Saving…':'Submit session'}</button>`;
+  }
+  return '';
+}
+
+/* ---------- Actions ---------- */
+document.addEventListener('click',async e=>{
+  const el=e.target.closest('[data-act]');if(!el)return;
+  const a=el.dataset.act, v=el.dataset.v;
+  if(el.tagName==='SELECT'||el.tagName==='TEXTAREA')return;
+  switch(a){
+    case 'gateSubmit': {
+      const val=($('#gateCode')?.value||'').trim();
+      if(val.toUpperCase()===TEAM_CODE.toUpperCase()){setGateOk();S.screen='name';S.gateError=''}
+      else{S.gateError='That code isn\'t right — check with your Head Coach.'}
+      break;
+    }
+    case 'tab': view=v; if(v==='dash')loadDash(); break;
+    case 'showAdd': adding=true; render(); setTimeout(()=>$('#newName')?.focus(),0); return;
+    case 'addName': await addName(); return;
+    case 'coach': {
+      const d=loadDrafts()[v];
+      if(d){S=Object.assign(fresh(),d);S.screen='list'}else{S=fresh();S.coach=v;S.screen='shift'}
+      break;
+    }
+    case 'role': S.role=v; S.classes=[]; break;
+    case 'classToggle': {
+      const i=S.classes.indexOf(v);
+      if(i>-1)S.classes.splice(i,1);else S.classes.push(v);
+      break;
+    }
+    case 'back': S=fresh(); break;
+    case 'toList': {
+      S.close=computeCloses(S.role,S.date,S.classes);
+      S.started=S.started||Date.now(); S.screen='list'; saveDraft(); window.scrollTo(0,0); break;
+    }
+    case 'tick': if(S.ticks[v]){delete S.ticks[v]}else{S.ticks[v]=Date.now();delete S.missed[v]} saveDraft(); break;
+    case 'stepNext': S.step=Math.min(S.step+1,STEPS.length-1); saveDraft(); window.scrollTo(0,0); break;
+    case 'stepBack': S.step=Math.max(S.step-1,0); window.scrollTo(0,0); break;
+    case 'pause': saveDraft(); S=fresh(); window.scrollTo(0,0); break;
+    case 'finishList': {
+      const un=linesFor(S.role,S.close).filter(l=>!S.ticks[l.id]);
+      S.screen=un.length?'missed':'close'; saveDraft(); window.scrollTo(0,0); break;
+    }
+    case 'reason': S.missed[el.dataset.line]=v; saveDraft(); break;
+    case 'toListBack': S.screen='list'; break;
+    case 'toClose': S.screen='close'; saveDraft(); window.scrollTo(0,0); break;
+    case 'closeBack': { const un=linesFor(S.role,S.close).filter(l=>!S.ticks[l.id]); S.screen=un.length?'missed':'list'; break; }
+    case 'rate': S.rating=Number(v); saveDraft(); break;
+    case 'submit': await submit(); return;
+    case 'restart': S=fresh(); window.scrollTo(0,0); break;
+    case 'week': dash.weekStart=new Date(dash.weekStart.getFullYear(),dash.weekStart.getMonth(),dash.weekStart.getDate()+Number(v)*7); loadDash(); break;
+    case 'refresh': loadDash(); break;
+    case 'removeCoach': await removeCoach(v); return;
+  }
+  render();
+});
+document.addEventListener('input',e=>{
+  if(e.target.id==='next'){
+    S.next=e.target.value;saveDraft();
+    const b=document.querySelector('[data-act="submit"]');
+    if(b)b.disabled=!(S.rating&&S.next.trim()&&!saving);
+  }
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&e.target.id==='newName'){e.preventDefault();addName()}
+  if(e.key==='Enter'&&e.target.id==='gateCode'){e.preventDefault();document.querySelector('[data-act="gateSubmit"]')?.click()}
+});
+
+async function loadCoaches(){
+  const {data,error}=await sb.from('coaches').select('name').order('name');
+  if(!error&&data)coaches=data.map(r=>r.name);
+  coachesLoaded=true;
+  if(view==='coach'&&S.screen==='name')render();
+}
+
+async function addName(){
+  const inp=$('#newName');const name=(inp?.value||'').trim().replace(/\s+/g,' ');
+  if(!name)return;
+  const nice=name.charAt(0).toUpperCase()+name.slice(1);
+  adding=false;
+  if(!coaches.some(c=>c.toLowerCase()===nice.toLowerCase())){
+    const {error}=await sb.from('coaches').insert({name:nice});
+    if(!error||error.code==='23505')coaches=[...coaches,nice];
+  }
+  S=fresh();S.coach=coaches.find(c=>c.toLowerCase()===nice.toLowerCase())||nice;S.screen='shift';
+  render();
+}
+async function removeCoach(name){
+  if(!confirm('Remove '+name+' from the coach list? Their past sessions stay in the data.'))return;
+  await sb.from('coaches').delete().eq('name',name);
+  coaches=coaches.filter(c=>c!==name);
+  render();
+}
+
+async function submit(){
+  if(saving)return;saving=true;saveError='';render();
+  const lines=linesFor(S.role,S.close);
+  const tickTimes=Object.values(S.ticks);
+  const span=tickTimes.length>1?Math.round((Math.max(...tickTimes)-Math.min(...tickTimes))/1000):0;
+  const entry={
+    date:S.date, coach:S.coach, role:S.role, classes:[...S.classes].sort((a,b)=>toMin(a)-toMin(b)),
+    close:{am:!!S.close.am,pm:!!S.close.pm},
+    lines:lines.map(l=>l.id), ticked:lines.filter(l=>S.ticks[l.id]).map(l=>l.id),
+    missed:Object.fromEntries(lines.filter(l=>!S.ticks[l.id]).map(l=>[l.id,S.missed[l.id]||'forgot'])),
+    rating:S.rating, next:S.next.trim().slice(0,1000), tick_span_sec:span,
+    started_at:new Date(S.started||Date.now()).toISOString(), submitted_at:new Date().toISOString()
+  };
+  const {error}=await sb.from('sessions').insert(entry);
+  if(!error){
+    clearDraft(S.coach);saving=false;doneLine=IDENTITY_LINES[Math.floor(Math.random()*IDENTITY_LINES.length)];S.screen='done';window.scrollTo(0,0);render();
+  }else{
+    saving=false;
+    saveError='This session didn\'t save. Check you\'re online, then tap Submit session again. Your ticks are kept.';
+    render();
+  }
+}
+
+/* ---------- Dashboard ---------- */
+async function loadDash(){
+  dash.loading=true;dash.error='';render();
+  const ws=ymd(dash.weekStart);const we=ymd(new Date(dash.weekStart.getFullYear(),dash.weekStart.getMonth(),dash.weekStart.getDate()+6));
+  const {data,error}=await sb.from('sessions').select('*').gte('date',ws).lte('date',we).limit(1000);
+  if(error){dash.error='The week\'s data didn\'t load. Tap Refresh to try again.';dash.data=null}
+  else dash.data=data;
+  dash.loading=false;render();
+}
+
+function renderDash(){
+  const ws=dash.weekStart;const we=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+6);
+  const fmt=d=>d.toLocaleDateString('en-AU',{day:'numeric',month:'short'});
+  let h=`<h1>Weekly floor report</h1><p class="lede">Where the standard is holding, where it's slipping, and what coaches say would make it a 5.</p>
+  <div class="weeknav"><button class="btn ghost" data-act="week" data-v="-1">Previous week</button><h2 style="margin:0">${fmt(ws)} to ${fmt(we)}</h2><button class="btn ghost" data-act="week" data-v="1">Next week</button></div>`;
+  if(dash.loading)return h+'<p class="empty">Loading the week…</p>';
+  if(dash.error)return h+`<div class="notice">${esc(dash.error)}</div><button class="btn" data-act="refresh">Refresh</button>`;
+  const rows=dash.data||[];
+  if(!rows.length)return h+'<div class="empty">No sessions logged this week yet. Once coaches submit, this fills in.</div>'+coachAdmin();
+
+  let app=0,tick=0,ratings=[];
+  const byLine={},byCoach={},reasons={time:0,forgot:0,na:0,unsure:0};
+  rows.forEach(r=>{
+    const na=Object.entries(r.missed||{}).filter(([,v])=>v==='na').map(([k])=>k);
+    const counted=r.lines.filter(id=>!na.includes(id));
+    app+=counted.length;tick+=r.ticked.length;
+    if(r.rating)ratings.push(r.rating);
+    r.lines.forEach(id=>{
+      const L=byLine[id]||(byLine[id]={app:0,tick:0,why:{}});
+      if(na.includes(id)){L.why.na=(L.why.na||0)+1;return}
+      L.app++;if(r.ticked.includes(id))L.tick++;
+      else{const w=(r.missed||{})[id]||'forgot';L.why[w]=(L.why[w]||0)+1}
+    });
+    Object.values(r.missed||{}).forEach(w=>{reasons[w]=(reasons[w]||0)+1});
+    const C=byCoach[r.coach]||(byCoach[r.coach]={n:0,app:0,tick:0,ratings:[],fast:0});
+    C.n++;C.app+=counted.length;C.tick+=r.ticked.length;if(r.rating)C.ratings.push(r.rating);
+    if(r.ticked.length>=8&&r.tick_span_sec<60)C.fast++;
+  });
+  const pct=(a,b)=>b?Math.round(a/b*100):0;
+  const avg=a=>a.length?(a.reduce((x,y)=>x+y,0)/a.length):0;
+
+  h+=`<div class="stats">
+    <div class="stat"><div class="led">${rows.length}</div><span>Sessions logged</span></div>
+    <div class="stat"><div class="led">${pct(tick,app)}%</div><span>Standards completed</span></div>
+    <div class="stat"><div class="led">${avg(ratings).toFixed(1)}</div><span>Average "left better" rating</span></div>
+  </div>`;
+
+  const lineRows=Object.entries(byLine).filter(([,L])=>L.app>0).map(([id,L])=>({id,...L,p:pct(L.tick,L.app)})).sort((a,b)=>a.p-b.p||b.app-a.app);
+  const slipping=lineRows.filter(l=>l.p<100);
+  h+=`<section class="panel"><h2>Lines slipping most</h2>`;
+  if(!slipping.length)h+='<div class="empty">Every applicable line was ticked this week.</div>';
+  else h+=`<div class="scroll"><table><thead><tr><th>Standard</th><th>Main reason missed</th><th class="num">Done</th></tr></thead><tbody>${slipping.slice(0,12).map(l=>{
+    const L=LINE[l.id];const roles=L?L.roles.replace('S','').split('').map(r=>ROLES[r]).join(', '):'';
+    const top=Object.entries(l.why).filter(([k])=>k!=='na').sort((a,b)=>b[1]-a[1])[0];
+    return `<tr><td>${esc(L?L.text:l.id)}<br><span class="sec-note">${esc(roles)}</span></td><td>${top?esc(REASONS[top[0]])+' ('+top[1]+')':''}</td><td class="num">${l.p}%<div class="meter${l.p>=90?' good':''}"><i style="width:${l.p}%"></i></div></td></tr>`;
+  }).join('')}</tbody></table></div>`;
+  h+='</section>';
+
+  h+=`<section class="panel"><h2>By coach</h2><div class="scroll"><table><thead><tr><th>Coach</th><th class="num">Sessions</th><th class="num">Completed</th><th class="num">Rating</th></tr></thead><tbody>${
+    Object.entries(byCoach).sort((a,b)=>a[0].localeCompare(b[0])).map(([n,C])=>`<tr><td>${esc(n)}${C.fast?`<br><span class="flag">${C.fast} session${C.fast>1?'s':''} ticked in under a minute</span>`:''}</td><td class="num">${C.n}</td><td class="num">${pct(C.tick,C.app)}%<div class="meter${pct(C.tick,C.app)>=90?' good':''}"><i style="width:${pct(C.tick,C.app)}%"></i></div></td><td class="num">${C.ratings.length?avg(C.ratings).toFixed(1):'–'}</td></tr>`).join('')
+  }</tbody></table></div><p class="sec-note">A session ticked in under a minute usually means the list was filled in after class, not as the work happened.</p></section>`;
+
+  const rvc=Object.entries(byCoach).map(([n,C])=>({n,rating:C.ratings.length?avg(C.ratings):null,pct:pct(C.tick,C.app)})).filter(x=>x.rating!=null).sort((a,b)=>b.rating-a.rating);
+  h+=`<section class="panel"><h2>Rating vs completion</h2><p class="sec-note">A high "left better" rating next to a lower completion is the coaching conversation, not a red flag on its own.</p>`;
+  if(!rvc.length)h+='<div class="empty">No rated sessions yet this week.</div>';
+  else h+=`<div class="scroll"><table><thead><tr><th>Coach</th><th class="num">Rating</th><th class="num">Completed</th><th>Worth a look</th></tr></thead><tbody>${rvc.map(x=>`<tr><td>${esc(x.n)}</td><td class="num">${x.rating.toFixed(1)}</td><td class="num">${x.pct}%</td><td>${x.rating>=4&&x.pct<85?'<span class="flag">High rating, standard slipping</span>':''}</td></tr>`).join('')}</tbody></table></div>`;
+  h+='</section>';
+
+  const totalMiss=Object.values(reasons).reduce((a,b)=>a+b,0);
+  h+=`<section class="panel"><h2>Why lines were missed</h2>`;
+  if(!totalMiss)h+='<div class="empty">Nothing missed this week.</div>';
+  else h+=`<table><tbody>${Object.entries(REASONS).map(([k,v])=>`<tr><td>${v}${k==='unsure'?'<br><span class="sec-note">A training need</span>':k==='time'?'<br><span class="sec-note">A system or timing problem</span>':''}</td><td class="num">${reasons[k]||0}<div class="meter"><i style="width:${pct(reasons[k]||0,totalMiss)}%"></i></div></td></tr>`).join('')}</tbody></table>`;
+  h+='</section>';
+
+  const feed=rows.filter(r=>r.next).sort((a,b)=>new Date(b.submitted_at)-new Date(a.submitted_at));
+  h+=`<section class="panel"><h2>What would make the next session a 5</h2>`;
+  h+=feed.length?`<ul class="feed">${feed.map(r=>{
+    const d=new Date(r.date+'T00:00:00').toLocaleDateString('en-AU',{weekday:'short'});
+    return `<li><div class="by">${esc(r.coach)}, ${ROLES[r.role]||''}, ${d} ${esc(summarizeClasses(r.classes))}, rated ${r.rating}</div>${esc(r.next)}</li>`;
+  }).join('')}</ul>`:'<div class="empty">No answers yet this week.</div>';
+  h+='</section>';
+  return h+coachAdmin();
+}
+
+function coachAdmin(){
+  if(!coaches.length)return '';
+  return `<section class="panel"><h2>Coach list</h2><table><tbody>${coaches.map(c=>`<tr><td>${esc(c)}</td><td class="num"><button class="remove" data-act="removeCoach" data-v="${esc(c)}">Remove</button></td></tr>`).join('')}</tbody></table></section>`;
+}
+
+/* ---------- Boot ---------- */
+render();
+loadCoaches();
+</script>
+</body>
+</html>
