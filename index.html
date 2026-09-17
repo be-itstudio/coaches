@@ -83,6 +83,7 @@ textarea{min-height:120px;resize:vertical}
 .item[aria-checked="true"] .box{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 .item[aria-checked="true"] .box svg{opacity:1}
 .item .who{font-size:14px;color:var(--muted);display:block}
+.item[aria-checked="true"] .txt{text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:var(--muted);color:var(--muted)}
 .miss{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:14px 16px;margin:10px 0}
 .miss p{margin:0 0 10px;font-weight:600}
 .chip{border:1.5px solid var(--line);background:var(--soft);border-radius:999px;padding:10px 16px;cursor:pointer;font-size:17px;min-height:46px}
@@ -421,7 +422,7 @@ function rList(){
     h+=`<section class="sec"><div class="sec-head"><h2>${name}</h2><span class="sec-count${c===ls.length?' done':''}">${c}/${ls.length}</span></div>${note?`<p class="sec-note">${note}</p>`:''}`;
     h+=ls.map(l=>{
       const shared=l.roles.length>2&&S.role!=='S'?'<span class="who">All coaches</span>':'';
-      return `<button class="item" role="checkbox" aria-checked="${!!S.ticks[l.id]}" data-act="tick" data-v="${l.id}"><span class="box">${CHECK}</span><span>${shared}${esc(lineText(l,S.role))}</span></button>`;
+      return `<button class="item" role="checkbox" aria-checked="${!!S.ticks[l.id]}" data-act="tick" data-v="${l.id}"><span class="box">${CHECK}</span><span class="txt">${shared}${esc(lineText(l,S.role))}</span></button>`;
     }).join('');
     h+='</section>';
   }
