@@ -3,6 +3,10 @@
   "short_name": "BE-IT",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#F3F3EF",
-  "theme_color": "#0B0B0A"
+  "background_color": "#0B0B0A",
+  "theme_color": "#0B0B0A",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
 }
