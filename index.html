@@ -184,10 +184,12 @@ const LINES = [
   ['a4','arrival','AS','Music on at 45%'],
   ['a5','arrival','AS','Rogue timer on, full sound'],
   ['a6','arrival','AS','Bookings checked, new members flagged'],
+  ['w1','arrival','A','Positioned around the iPad, welcoming members'],
   ['b1','arrival','BS','Workout walked through, floor numbers match the program on the TV'],
   ['b2','arrival','BS','Get Ready zone lights on'],
   ['b3','arrival','BS','Diffuser on at front desk'],
   ['b4','arrival','BS','Sauna bookings checked, sauna on at least 1 hr 15 min before each booking'],
+  ['w2','arrival','B','Talking with members, setting the energy'],
   ['c1','arrival','C','Track setup checked against today\'s Perform program'],
   ['c2','arrival','C','Workout on Track TV'],
   ['c3','arrival','C','Perform bookings checked, new members flagged'],
@@ -211,10 +213,10 @@ const LINES = [
   ['u1','during','AS','Every member pushed through at least 1 set'],
   ['u2','during','AS','Owned the final minute and the finisher'],
   ['u3','during','B','Held 1–2 hotspots, every member pushed through at least 1 set there'],
-  ['u4','during','ABC','Every member got a touch point from every coach by the end'],
+  ['e6','ends','ABC','Every member received a touch point (coaching cue, conversation or encouragement)'],
   ['e1','ends','ABCS','High fived every member'],
   ['e2','ends','AS','Music down to 45%, fans off'],
-  ['e3','ends','AS','Mums sent up to crèche, member questions answered',['late']],
+  ['e3','ends','AS','Mums sent up to crèche, member questions answered',['late'],[1,2,3,4,5]],
   ['e5','ends','AS','Attendance checked: anyone who didn\'t attend marked off, everyone checked in correctly'],
   ['e4','ends','ABS','Gym set to standard together'],
   ['p1','clean','AS','Bathrooms vacuumed, gym mats spot vacuumed'],
@@ -231,7 +233,7 @@ const LINES = [
   ['q5','pmclose','BS','Sauna off'],
   ['mv3','pmclose','M','Roller door down, meditation music off'],
   ['q6','pmclose','AS','A/C, TV and lights off, last out, alarm on']
-].map(([id,sec,roles,text,only])=>({id,sec,roles,text,only}));
+].map(([id,sec,roles,text,only,days])=>({id,sec,roles,text,only,days}));
 const LINE = Object.fromEntries(LINES.map(l=>[l.id,l]));
 const REASONS = {time:'Ran out of time',forgot:'Forgot',na:'Not needed today',unsure:'Not sure how'};
 
@@ -301,7 +303,7 @@ function blockOf(t){const m=toMin(t);return m<450?'early':(m<720?'late':'pm')}
 function blocksFor(dateStr){
   const d=dayInfo(dateStr);
   const out={};
-  d.am.concat(d.pm).forEach(t=>{const b=blockOf(t);(out[b]=out[b]||{id:b,name:BLOCK_NAME[b],classes:[],perform:[]}).classes.push(t)});
+  d.am.concat(d.pm).forEach(t=>{const b=blockOf(t);(out[b]=out[b]||{id:b,name:BLOCK_NAME[b],classes:[],perform:[],dow:new Date(dateStr+'T00:00:00').getDay()}).classes.push(t)});
   d.perform.forEach(t=>{const b=blockOf(t);if(out[b])out[b].perform.push(t)});
   return BLOCK_ORDER.filter(b=>out[b]).map(b=>out[b]);
 }
@@ -331,6 +333,7 @@ function visible(l,blk,closes){
   const o=owners(l);
   if(!o)return false;
   if(l.only&&!l.only.includes(blk.id))return false;
+  if(l.days&&!l.days.includes(blk.dow))return false;
   if(l.sec==='amclose')return o==='C'?(closes.track&&blk.perform.length>0):closes.am;
   if(l.sec==='pmclose')return closes.pm;
   if(o==='C'&&!blk.perform.length)return false;
