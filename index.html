@@ -174,12 +174,12 @@ const SECTIONS = [
   {id:'starting', name:'Session starting'},
   {id:'during',   name:'During'},
   {id:'ends',     name:'Class ends'},
-  {id:'amclose',  name:'After the last AM class', note:'Class ends done first'},
-  {id:'pmclose',  name:'After the last class of the day', note:'Class ends done first'}
+  {id:'clean',    name:'Clean down', note:'After every block'},
+  {id:'amclose',  name:'Before PM classes', note:'After the last AM class'},
+  {id:'pmclose',  name:'Closing the gym', note:'After the last class of the day'}
 ];
 // [id, section, roles (A,B,C,S=solo), text, solo text]
 const LINES = [
-  ['a2','arrival','AS','Front door open'],
   ['a3','arrival','AS','Phone connected, workout on TV'],
   ['a4','arrival','AS','Music on at 45%'],
   ['a5','arrival','AS','Rogue timer on, full sound'],
@@ -192,9 +192,10 @@ const LINES = [
   ['c2','arrival','C','Workout on Track TV'],
   ['c3','arrival','C','Perform bookings checked, new members flagged'],
   ['c4','arrival','C','Own Perform run-through done'],
+  ['mv1','arrival','M','Roller door open'],
+  ['mv2','arrival','M','Meditation music on'],
   ['g1','arrival','ABCS','Staff gear in the cubes or upstairs, nothing at the front desk'],
-  ['h1','huddle','AB','Full demo run through together'],
-  ['h2','huddle','AB','Workout split in half, each coach named their 3 stations'],
+  ['h1','huddle','AB','Full demo run through together, workout split in half, each coach named their 3 stations'],
   ['h3','huddle','B','Named my 1–2 hotspots'],
   ['s1','huddle','S','Walked through the demo on my own'],
   ['m1','arriving','ABCS','Every single person greeted by name'],
@@ -213,21 +214,24 @@ const LINES = [
   ['u4','during','ABC','Every member got a touch point from every coach by the end'],
   ['e1','ends','ABCS','High fived every member'],
   ['e2','ends','AS','Music down to 45%, fans off'],
-  ['e3','ends','AS','Mums sent up to crèche, member questions answered'],
+  ['e3','ends','AS','Mums sent up to crèche, member questions answered',['late']],
+  ['e5','ends','AS','Attendance checked: anyone who didn\'t attend marked off, everyone checked in correctly'],
   ['e4','ends','ABS','Gym set to standard together'],
-  ['p1','amclose','AS','Bathrooms vacuumed, gym mats spot vacuumed'],
-  ['p2','amclose','AS','Turf vacuumed (Coach C does this on Perform shifts)'],
+  ['p1','clean','AS','Bathrooms vacuumed, gym mats spot vacuumed'],
+  ['p2','clean','AS','Turf vacuumed (Coach C does this on Perform shifts)'],
+  ['p4','clean','BS','All used equipment wiped with spray and cloth'],
+  ['p7','clean','BS','Toilets checked'],
+  ['p8','clean','BS','Toilet bins checked'],
   ['p3','amclose','AS','iPad and iPhone on charge at front desk'],
-  ['p4','amclose','BS','All used equipment wiped with spray and cloth'],
   ['p5','amclose','BS','Barbells and equipment reset for PM classes'],
   ['p6','amclose','C','Track packed down, Track equipment wiped, turf vacuumed'],
   ['q1','pmclose','AS','Today\'s equipment packed away, gym set for tomorrow\'s program'],
   ['q2','pmclose','AS','Floor standard checked and met'],
-  ['q3','pmclose','BS','All used equipment wiped'],
-  ['q4','pmclose','BS','Bathrooms checked, bins emptied'],
+  ['q4','pmclose','BS','Bins emptied and taken out'],
   ['q5','pmclose','BS','Sauna off'],
+  ['mv3','pmclose','M','Roller door down, meditation music off'],
   ['q6','pmclose','AS','A/C, TV and lights off, last out, alarm on']
-].map(([id,sec,roles,text])=>({id,sec,roles,text}));
+].map(([id,sec,roles,text,only])=>({id,sec,roles,text,only}));
 const LINE = Object.fromEntries(LINES.map(l=>[l.id,l]));
 const REASONS = {time:'Ran out of time',forgot:'Forgot',na:'Not needed today',unsure:'Not sure how'};
 
@@ -236,7 +240,7 @@ const PRE_SECS = ['arrival','huddle'];
 const IN_CLASS_SECS = ['arriving','demo','starting','during'];
 // In-class standards are parked until we decide where they live. Flip to true to show them in Post.
 const SHOW_IN_CLASS = false;
-const POST_SECS = SECTIONS.map(s=>s.id).filter(id=>['ends','amclose','pmclose'].includes(id)||(SHOW_IN_CLASS&&IN_CLASS_SECS.includes(id)));
+const POST_SECS = SECTIONS.map(s=>s.id).filter(id=>['ends','clean','amclose','pmclose'].includes(id)||(SHOW_IN_CLASS&&IN_CLASS_SECS.includes(id)));
 
 const ANCHOR_LINES = [
   'I am the standard in this room. Everyone leaves better than when they walked in.',
@@ -278,8 +282,8 @@ const TIMETABLE = {
   5: {am:['04:50','05:50','06:50','08:00','09:00','10:00'], pm:['16:00'],         perform:['04:50','05:50','09:00']},
   6: {am:['06:15','08:00'],                                  pm:[],               perform:[]}
 };
-// Blocks: Early AM (before 7:30), Late AM (7:30 to noon), PM (noon on)
-const BLOCK_NAME = {early:'Early AM',late:'Late AM',pm:'PM'};
+// Blocks: Block 1 (before 7:30am), Block 2 (7:30am to noon), PM (noon on)
+const BLOCK_NAME = {early:'Block 1',late:'Block 2',pm:'PM'};
 const BLOCK_ORDER = ['early','late','pm'];
 
 /* ---------- Helpers ---------- */
@@ -308,7 +312,7 @@ function blockCloses(dateStr,blk){
   const amMax=d.am.length?Math.max(...d.am.map(toMin)):null;
   const perfMax=d.perform.length?Math.max(...d.perform.map(toMin)):null;
   const has=(list,m)=>m!=null&&list.some(c=>toMin(c)===m);
-  return {am:has(blk.classes,amMax),pm:has(blk.classes,dayMax),track:has(blk.perform,perfMax)};
+  return {am:has(blk.classes,amMax)&&d.pm.length>0,pm:has(blk.classes,dayMax),track:has(blk.perform,perfMax)};
 }
 function isNow(blk){
   const n=new Date();const m=n.getHours()*60+n.getMinutes();
@@ -322,10 +326,11 @@ function summarizeClasses(classes){
   return fmtTime(t[0])+'–'+fmtTime(t[t.length-1])+' · '+t.length+' classes';
 }
 function owners(l){return l.roles.replace('S','')}
-function ownerLabel(l){return {A:'Coach A',B:'Coach B',C:'Coach C',AB:'Coach A + B',ABC:'All coaches'}[owners(l)]||''}
+function ownerLabel(l){return {A:'Coach A',B:'Coach B',C:'Coach C',M:'Move space',AB:'Coach A + B',ABC:'All coaches'}[owners(l)]||''}
 function visible(l,blk,closes){
   const o=owners(l);
   if(!o)return false;
+  if(l.only&&!l.only.includes(blk.id))return false;
   if(l.sec==='amclose')return o==='C'?(closes.track&&blk.perform.length>0):closes.am;
   if(l.sec==='pmclose')return closes.pm;
   if(o==='C'&&!blk.perform.length)return false;
@@ -522,10 +527,10 @@ function rBlock(phase){
   h+=`<div class="seg"><button class="segbtn" data-act="phase" data-v="pre" aria-pressed="${phase==='pre'}">Pre</button><button class="segbtn" data-act="phase" data-v="post" aria-pressed="${phase==='post'}">Post</button></div>`;
   if(phase==='pre'){
     h+='<p class="sec-note">One list for the whole team. Each group shows who usually does it, but anyone can tick anything.</p>';
-    const groups={A:[],B:[],C:[],TEAM:[]};
+    const groups={A:[],B:[],C:[],M:[],TEAM:[]};
     lines.forEach(l=>{const o=owners(l);groups[o.length===1?o:'TEAM'].push(l)});
-    const heads={A:'Coach A',B:'Coach B',C:'Coach C · Perform',TEAM:'Team'};
-    ['A','B','C','TEAM'].forEach(k=>{
+    const heads={A:'Coach A',B:'Coach B',C:'Coach C · Perform',M:'Move space',TEAM:'Team'};
+    ['A','B','C','M','TEAM'].forEach(k=>{
       if(!groups[k].length)return;
       h+=`<section class="sec">${groupHead(heads[k],groups[k])}${groups[k].map(l=>itemBtn(l,k==='TEAM')).join('')}</section>`;
     });
